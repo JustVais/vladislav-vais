@@ -4,7 +4,7 @@ import { PageLayout } from '../components/PageLayout'
 export const About = () => {
   return (
     <PageLayout>
-      <Container>
+      <div>
         <h2>Обо мне</h2>
         <Paragraph>
           <h2>Языки программирования</h2>
@@ -75,14 +75,10 @@ export const About = () => {
             <p>2019 - 2021</p>
           </Paragraph>
         </Paragraph>
-      </Container>
+      </div>
     </PageLayout>
   )
 }
-
-const Container = styled.div`
-
-`
 
 const Paragraph = styled.div`
   padding-left: 20px;
