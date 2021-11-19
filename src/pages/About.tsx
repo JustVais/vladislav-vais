@@ -1,20 +1,23 @@
+import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import { PageLayout } from '../components/PageLayout'
 
 export const About = () => {
+  const { t } = useTranslation()
+  
   return (
     <PageLayout>
       <div>
-        <h2>Обо мне</h2>
-        <Paragraph>
-          <h2>Языки программирования</h2>
+        <h2>{t('about.about_me')}</h2>
+        <ParagraphWithMargin>
+          <h2>{t('about.prog_lang')}</h2>
           <p>JavaScript(TypeScript), PHP, Java, C#, Python</p>
-        </Paragraph>
-        <Paragraph>
-          <h2 style={{ marginBottom: "0" }}>Технологии</h2>
+        </ParagraphWithMargin>
+        <ParagraphWithMargin>
+          <h2 style={{ marginBottom: "0" }}>{t('about.technologies')}</h2>
           <ParagraphWrapper>
             <Paragraph>
-              <h3>Использую</h3>
+              <h3>{t('about.use')}</h3>
               <Paragraph>
                 <h3>Frontend</h3>
                 <ul>
@@ -23,6 +26,7 @@ export const About = () => {
                   <li>Redux</li>
                   <li>Redux-Saga</li>
                   <li>Svelte</li>
+                  <li>Webpack</li>
                   <li>Next.JS</li>
                 </ul>
                 <h3>Backend</h3>
@@ -35,7 +39,7 @@ export const About = () => {
                   <li>MySQL</li>
                   <li>MongoDB</li>
                 </ul>
-                <h3>Another</h3>
+                <h3>{t('about.another')}</h3>
                 <ul>
                   <li>Git</li>
                   <li>Docker + docker-compose</li>
@@ -47,7 +51,7 @@ export const About = () => {
               </Paragraph>
             </Paragraph>
             <Paragraph>
-              <h3>Знаком</h3>
+              <h3>{t('about.familiar')}</h3>
               <Paragraph>
                 <h3>Frontend</h3>
                 <ul>
@@ -60,21 +64,21 @@ export const About = () => {
                 <ul>
                   <li>Java Spring</li>
                 </ul>
-                <h3>Another</h3>
+                <h3>{t('about.another')}</h3>
                 <ul>
                   <li>urql</li>
                 </ul>
               </Paragraph>
             </Paragraph>
           </ParagraphWrapper>
-        </Paragraph>
-        <Paragraph>
-          <h2>Опыт работы</h2>
+        </ParagraphWithMargin>
+        <ParagraphWithMargin>
+          <h2>{t('about.experience')}</h2>
           <Paragraph>
             <h3>Freelance</h3>
             <p>2019 - 2021</p>
           </Paragraph>
-        </Paragraph>
+        </ParagraphWithMargin>
       </div>
     </PageLayout>
   )
@@ -83,6 +87,11 @@ export const About = () => {
 const Paragraph = styled.div`
   padding-left: 20px;
 `
+
+const ParagraphWithMargin = styled(Paragraph)`
+  margin-top: 40px;
+`
+
 const ParagraphWrapper = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
