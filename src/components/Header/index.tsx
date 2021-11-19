@@ -1,23 +1,30 @@
 import styled from 'styled-components'
 import { useNavigate, useLocation } from "react-router-dom"
+import { useTranslation } from 'react-i18next'
 
 export const Header = () => {
-  let navigate = useNavigate()
-  let location = useLocation()
+  const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const onClickRedirectHandler = (href: string) => () => {
     navigate(href)
   }
-  
+
+  const onChangeLangHandler = () => {
+    i18n.changeLanguage(i18n.language === "ru" ? "en" : "ru")
+  }
+
   return (
     <Container>
       {
         location.pathname !== '/' && <Brand onClick={onClickRedirectHandler('/')}>vladislav.</Brand>
       }
+      <Lang onClick={onChangeLangHandler}>{i18n.language}</Lang>
       <Navigation>
-        <NavItem onClick={onClickRedirectHandler('/about')}>About</NavItem>
-        <NavItem onClick={onClickRedirectHandler('/work')}>Work</NavItem>
-        <NavItem onClick={onClickRedirectHandler('/contact')}>Contact</NavItem>
+        <NavItem onClick={onClickRedirectHandler('/about')}>{t('header.about')}</NavItem>
+        <NavItem onClick={onClickRedirectHandler('/work')}>{t('header.work')}</NavItem>
+        <NavItem onClick={onClickRedirectHandler('/contact')}>{t('header.contact')}</NavItem>
       </Navigation>
     </Container>
   )
@@ -74,4 +81,16 @@ const Brand = styled.span`
     opacity: 1;
     transform: translateX(0);
   }
+`
+
+const Lang = styled.span`
+  position: absolute;
+  right: 40px;
+  font-size: 24px;
+  font-family: "Eurostile", sans-serif;
+  height: max-content;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  cursor: pointer;
 `

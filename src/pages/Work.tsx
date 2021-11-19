@@ -1,13 +1,16 @@
+import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 import { PageLayout } from '../components/PageLayout'
 import { WorkList } from '../components/Works'
 
 export const Work = () => {
+  const { t } = useTranslation()
+
   return (
     <PageLayout>
-      <WorkList />
-      <AndMore>И МНОГОЕ МНОГОЕ ДРУГОЕ</AndMore>
+      <WorkList works={t('work.works', {returnObjects: true})} />
+        <AndMore>{t('work.much_more')}</AndMore>
     </PageLayout >
   )
 }

@@ -1,42 +1,21 @@
+import { FC } from 'react'
 import styled from 'styled-components'
 import { IWorkItemProps, WorkItem } from './WorkItem'
 
-const myWorks = [
-  {
-    title: "СУЗ",
-    capture: "Система управления заявками"
-  },
-  {
-    title: "Canoe",
-    capture: "Интернет магазин бренда одежды"
-  },
-  {
-    title: "DVPL конвертер",
-    capture: "Онлайн конвертация и деконвертация файлов в DVPL"
-  },
-  {
-    title: "WE-AR",
-    capture: "Сервис для создания и отображения AR объектов"
-  },
-  {
-    title: "SnowCredit",
-    capture: "Разделы РКО"
-  },
-  {
-    title: "Кредиты Онлайн",
-    capture: "Казахстанский сайт со статьями о кредитах"
-  },
-  {
-    title: "YSHOP",
-    capture: "Сбор информации о товарах для интернет магазина"
-  },
-]
+interface IWork {
+  readonly title: string
+  readonly capture: string
+}
 
-export const WorkList = () => {
+export interface IWorkListProps {
+  readonly works: IWork[]
+}
+
+export const WorkList: FC<IWorkListProps> = ({ works }) => {
   return (
     <Container>
       {
-        myWorks.map((item: IWorkItemProps, index: number) =>
+        works.map((item: IWorkItemProps, index: number) =>
           <WorkItem
             title={item.title}
             capture={item.capture}
