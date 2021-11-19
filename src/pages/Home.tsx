@@ -1,24 +1,23 @@
 import styled from 'styled-components'
-import { Header } from '../components/Header'
+import { PageLayout } from '../components/PageLayout'
 
 export const Home = () => {
   return (
-    <>
-      <Container>
-        <Header />
-        <Wrapper>
-          <Inner>
-            <Name>Vladislav Vais</Name>
-            <Caption>Full Stack Web Developer</Caption>
-          </Inner>
-        </Wrapper>
-      </Container>
-    </>
+    <PageLayout>
+      <Wrapper>
+        <Inner>
+          <Name>Vladislav Vais</Name>
+          <Caption>Full Stack Web Developer</Caption>
+        </Inner>
+      </Wrapper>
+    </PageLayout>
   )
 }
 
-const Container = styled.div`
-  height: 100vh;
+const Wrapper = styled.div`
+  height: 100%;
+  display: grid;
+  align-content: center;
 `
 
 const Inner = styled.div`
@@ -40,11 +39,4 @@ const Caption = styled.span`
   margin: 0;
   font-family: "OpenSans-Light", sans-serif;
   line-height: 1.5;
-`
-
-const Wrapper = styled.div`
-  display: grid;
-  justify-content: center;
-  align-content: center;
-  height: calc(100vh - 80px);
 `
