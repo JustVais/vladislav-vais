@@ -78,6 +78,14 @@ export const About = () => {
             <h3>Freelance</h3>
             <p>2019 - 2021</p>
           </Paragraph>
+          <Paragraph>
+            <h3>Стартап</h3>
+            <p>2022.01 - 2022.07</p>
+          </Paragraph>
+          <Paragraph>
+            <h3>Собственный проект</h3>
+            <p>2022.08 - ...</p>
+          </Paragraph>
         </ParagraphWithMargin>
       </div>
     </PageLayout>
