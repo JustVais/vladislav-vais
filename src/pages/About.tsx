@@ -79,12 +79,12 @@ export const About = () => {
             <p>2019 - 2021</p>
           </Paragraph>
           <Paragraph>
-            <h3>Стартап</h3>
-            <p>2022.01 - 2022.07</p>
+            <h3>Cheap-lead</h3>
+            <p>2021.08 - 2021.12</p>
           </Paragraph>
           <Paragraph>
-            <h3>Собственный проект</h3>
-            <p>2022.08 - ...</p>
+            <h3>Admitad</h3>
+            <p>2022.01 - 2023.02</p>
           </Paragraph>
         </ParagraphWithMargin>
       </div>
