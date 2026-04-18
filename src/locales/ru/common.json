@@ -1,0 +1,16 @@
+{
+  "titles": {
+    "/": "Vladislav Vikul",
+    "/about": "Vladislav Vikul | Обо мне",
+    "/work": "Vladislav Vikul | Работы",
+    "/contact": "Vladislav Vikul | Контакты"
+  },
+  "header": {
+    "about": "Обо мне",
+    "work": "Работы",
+    "photos": "Фото",
+    "countries": "Страны",
+    "mountains": "Горы",
+    "contact": "Контакты"
+  }
+}

@@ -1,0 +1,74 @@
+# .claudeignore
+
+# 📦 Зависимости (самый большой пожиратель токенов)
+node_modules/
+.pnp
+.pnp.js
+
+# 🗂️ Билды и скомпилированные файлы
+.next/
+out/
+build/
+dist/
+.vercel/
+
+# 🔒 Секреты и локальные конфиги (КРИТИЧНО ДЛЯ БЕЗОПАСНОСТИ)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+
+# 📄 Логи
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 🖼️ Медиафайлы и ассеты (ИИ не нужно их читать, они просто забивают контекст)
+public/images/
+public/assets/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.webp
+*.mp4
+*.mp3
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# 📚 Lock-файлы (Огромные файлы, для анализа зависимостей агенту хватит package.json)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# 🧪 Отчеты о покрытии тестами
+coverage/
+.nyc_output/
+
+# 🛠️ Кэш и временные файлы различных утилит
+.turbo/
+.cache/
+.eslintcache
+.stylelintcache
+tsbuildinfo
+
+# 💻 Файлы редакторов и ОС
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db

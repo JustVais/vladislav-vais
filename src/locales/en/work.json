@@ -1,0 +1,16 @@
+{
+  "title": "Selected Work",
+  "much_more": "AND MUCH, MUCH MORE",
+  "works": [
+    { "title": "Брусника", "capture": "Land bank" },
+    { "title": "RaketaCN", "capture": "Fast delivery of goods from China" },
+    { "title": "SUZ", "capture": "Leads Management System" },
+    { "title": "Canoe", "capture": "Online store of the clothing brand" },
+    { "title": "DVPL converter", "capture": "Online file conversion to DVPL" },
+    { "title": "WE-AR", "capture": "Service for creating and displaying AR objects" },
+    { "title": "SnowCredit", "capture": "Financial Information Portal" },
+    { "title": "Credits Online", "capture": "Kazakhstan website with articles about credits" },
+    { "title": "YSHOP", "capture": "Collecting information about products for an online store" },
+    { "title": "Cheap-lead", "capture": "Social media advertising service" }
+  ]
+}
