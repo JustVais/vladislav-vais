@@ -58,6 +58,12 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   const isSwipingNav = useRef(false)
   const navSwipeDx = useRef(0)
 
+  // Smooth wheel zoom
+  const wheelTarget = useRef({ zoom: 1, ox: 0, oy: 0 })
+  const wheelCurrent = useRef({ zoom: 1, ox: 0, oy: 0 })
+  const wheelRafId = useRef<number | null>(null)
+  const isWheelZooming = useRef(false)
+
   // Double tap
   const lastTapTime = useRef(0)
 
@@ -72,6 +78,26 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   const resetZoom = useCallback(() => { setImgZoom(1); setImgOffset({ x: 0, y: 0 }) }, [])
   const prev = useCallback(() => { setSelectedIndex((i) => i !== null ? (i - 1 + photos.length) % photos.length : null); resetZoom() }, [photos.length, resetZoom])
   const next = useCallback(() => { setSelectedIndex((i) => i !== null ? (i + 1) % photos.length : null); resetZoom() }, [photos.length, resetZoom])
+
+  const runWheelAnim = useCallback(() => {
+    const t = wheelTarget.current
+    const c = wheelCurrent.current
+    c.zoom += (t.zoom - c.zoom) * 0.16
+    c.ox   += (t.ox   - c.ox)   * 0.16
+    c.oy   += (t.oy   - c.oy)   * 0.16
+    const done = Math.abs(c.zoom - t.zoom) < 0.001 && Math.abs(c.ox - t.ox) < 0.2 && Math.abs(c.oy - t.oy) < 0.2
+    if (done) {
+      setImgZoom(t.zoom)
+      setImgOffset({ x: t.ox, y: t.oy })
+      wheelCurrent.current = { ...t }
+      isWheelZooming.current = false
+      wheelRafId.current = null
+    } else {
+      setImgZoom(c.zoom)
+      setImgOffset({ x: c.ox, y: c.oy })
+      wheelRafId.current = requestAnimationFrame(runWheelAnim)
+    }
+  }, [])
 
   const handleHover = useCallback((publicId: string) => {
     const src = cloudinaryFull(publicId)
@@ -170,15 +196,37 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
       if (e.touches.length >= 2 || imgZoomRef.current > 1) e.preventDefault()
     }
 
-    // Non-passive wheel для десктопа
+    // Non-passive wheel для десктопа — плавный zoom к точке курсора
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
-      setImgZoom((z) => {
-        const factor = e.deltaY < 0 ? 1.04 : 1 / 1.04
-        const next = z * factor
-        if (next <= 1) { setImgOffset({ x: 0, y: 0 }); return 1 }
-        return Math.min(next, 8)
-      })
+      // Sync wheelCurrent from React state when starting a fresh gesture
+      if (!isWheelZooming.current) {
+        wheelCurrent.current = { zoom: imgZoomRef.current, ox: imgOffsetRef.current.x, oy: imgOffsetRef.current.y }
+        wheelTarget.current = { ...wheelCurrent.current }
+      }
+      isWheelZooming.current = true
+      const rect = el.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const mx = e.clientX - cx
+      const my = e.clientY - cy
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15
+      const z1 = wheelTarget.current.zoom
+      const z2 = Math.min(Math.max(z1 * factor, 1), 8)
+      if (z2 <= 1) {
+        wheelTarget.current = { zoom: 1, ox: 0, oy: 0 }
+      } else {
+        const ox = wheelTarget.current.ox
+        const oy = wheelTarget.current.oy
+        wheelTarget.current = {
+          zoom: z2,
+          ox: mx * (1 - z2 / z1) + ox * z2 / z1,
+          oy: my * (1 - z2 / z1) + oy * z2 / z1,
+        }
+      }
+      if (!wheelRafId.current) {
+        wheelRafId.current = requestAnimationFrame(runWheelAnim)
+      }
     }
 
     el.addEventListener('touchmove', preventDefault, { passive: false })
@@ -186,8 +234,10 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     return () => {
       el.removeEventListener('touchmove', preventDefault)
       el.removeEventListener('wheel', onWheel)
+      if (wheelRafId.current) { cancelAnimationFrame(wheelRafId.current); wheelRafId.current = null }
+      isWheelZooming.current = false
     }
-  }, [selected])
+  }, [selected, runWheelAnim])
 
   // Блокируем viewport zoom через мета-тег когда лайтбокс открыт
   useEffect(() => {
@@ -433,7 +483,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
                 position: 'relative',
                 transform: `translate(${imgOffset.x}px, ${imgOffset.y}px) scale(${imgZoom})`,
                 transformOrigin: 'center',
-                transition: (isDragging.current || isPinching.current || isTouchPanning.current) ? 'none' : 'transform 0.18s ease-out',
+                transition: (isDragging.current || isPinching.current || isTouchPanning.current || isWheelZooming.current) ? 'none' : 'transform 0.18s ease-out',
                 willChange: 'transform',
               }}
             >
