@@ -12,7 +12,7 @@ export function PageLayout({ children }: Props) {
       <div className="ripple-bg" />
       <div className="relative z-10">
         <Header />
-        <main className="grid max-w-[1140px] mx-auto box-border
+        <main className="page-enter grid max-w-[1140px] mx-auto box-border
                          px-4 py-8
                          sm:px-6 sm:py-12
                          md:px-8 md:py-16

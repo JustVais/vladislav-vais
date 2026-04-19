@@ -10,6 +10,11 @@ export interface PhotoEntry {
 }
 
 export const photos: PhotoEntry[] = [
+  // апрель 2026
+  {
+    publicId: 'DSC02925_jgfxuv',
+    meta: { description: 'Литературный квартал', date: 'апрель 2026', place: 'Екатеринбург' }
+  },
   // ноябрь 2025
   {
     publicId: 'DSC02775_1_xil2ys',
@@ -43,7 +48,7 @@ export const photos: PhotoEntry[] = [
   // июль 2025
   {
     publicId: 'DSC02055_ujnbeo',
-    meta: { description: '', date: 'июль 2025', place: 'Алапаевск' },
+    meta: { description: 'Нейва', date: 'июль 2025', place: 'Алапаевск' },
   },
   {
     publicId: 'DSC02178_4_rv7gvu',
@@ -77,6 +82,10 @@ export const photos: PhotoEntry[] = [
   },
   {
     publicId: 'DSC00644_mu1zmp',
+    meta: { description: '', date: 'апрель 2025', place: 'Екатеринбург' },
+  },
+  {
+    publicId: 'DSC00249_tuogoh',
     meta: { description: '', date: 'апрель 2025', place: 'Екатеринбург' },
   },
 ]

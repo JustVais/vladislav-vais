@@ -44,13 +44,22 @@ export function Header() {
 
       {/* Desktop nav — центр */}
       <ul className="hidden md:grid grid-flow-col gap-x-10 list-none m-0 p-0 absolute left-1/2 -translate-x-1/2">
-        {NAV_LINKS.map(({ href, labelKey }) => (
-          <li key={href}>
-            <Link href={href} className="font-open-sans font-light hover:underline text-black no-underline">
-              {t(labelKey)}
-            </Link>
-          </li>
-        ))}
+        {NAV_LINKS.map(({ href, labelKey }) => {
+          const active = pathname === href
+          return (
+            <li key={href}>
+              <Link
+                href={href}
+                className={`font-open-sans font-light text-black no-underline relative transition-opacity duration-200 ${active ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
+              >
+                {t(labelKey)}
+                {active && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-px bg-black" />
+                )}
+              </Link>
+            </li>
+          )
+        })}
       </ul>
 
       {/* Правая часть: язык + гамбургер */}
@@ -81,7 +90,7 @@ export function Header() {
             <Link
               key={href}
               href={href}
-              className="px-4 py-4 font-open-sans font-light text-black no-underline hover:bg-gray-50 border-b border-gray-100 last:border-0"
+              className={`px-4 py-4 font-open-sans text-black no-underline border-b border-gray-100 last:border-0 ${pathname === href ? 'font-medium' : 'font-light hover:bg-gray-50'}`}
             >
               {t(labelKey)}
             </Link>

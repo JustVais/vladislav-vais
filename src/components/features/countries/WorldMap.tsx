@@ -70,23 +70,26 @@ export function WorldMap() {
               coordinates={city.coordinates}
               onMouseEnter={() => setTooltip(city.name)}
               onMouseLeave={() => setTooltip(null)}
+              onClick={() => setTooltip((t) => t === city.name ? null : city.name)}
             >
               <circle r={4 / zoom} fill="#fff" stroke="#111" strokeWidth={1.5 / zoom} className="cursor-pointer" />
-              <text
-                textAnchor="middle"
-                y={-8 / zoom}
-                style={{
-                  fontFamily: 'var(--font-open-sans)',
-                  fontSize: 8 / zoom,
-                  fill: '#fff',
-                  stroke: '#111',
-                  strokeWidth: 0.3 / zoom,
-                  paintOrder: 'stroke',
-                  pointerEvents: 'none',
-                }}
-              >
-                {city.name}
-              </text>
+              {zoom >= 2 && (
+                <text
+                  textAnchor="middle"
+                  y={-8 / zoom}
+                  style={{
+                    fontFamily: 'var(--font-open-sans)',
+                    fontSize: 8 / zoom,
+                    fill: '#fff',
+                    stroke: '#111',
+                    strokeWidth: 0.3 / zoom,
+                    paintOrder: 'stroke',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {city.name}
+                </text>
+              )}
             </Marker>
           ))}
         </ZoomableGroup>

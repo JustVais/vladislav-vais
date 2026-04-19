@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import { PhotoCard } from './PhotoCard'
 import { cloudinaryGrid, cloudinaryPreview, cloudinaryFull } from '@/lib/cloudinary'
 import type { PhotoEntry, PhotoMeta } from '@/data/photos'
@@ -24,9 +26,11 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const urlInitialized = useRef(false)
   const [imgLoaded, setImgLoaded] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [imgZoom, setImgZoom] = useState(1)
   const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 })
 
+  const router = useRouter()
   const preloaded = useRef(new Set<string>())
   const lightboxRef = useRef<HTMLDivElement>(null)
 
@@ -38,6 +42,8 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   // Touch pinch/pan
   const pinchStartDist = useRef<number | null>(null)
   const pinchStartZoom = useRef(1)
+  const pinchMidStart = useRef({ x: 0, y: 0 })
+  const pinchOffsetStart = useRef({ x: 0, y: 0 })
   const touchPanStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
   const isPinching = useRef(false)
   const isTouchPanning = useRef(false)
@@ -47,6 +53,13 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   const swipeStartX = useRef(0)
   const swipeStartY = useRef(0)
   const isSwipingToClose = useRef(false)
+
+  // Swipe to navigate
+  const isSwipingNav = useRef(false)
+  const navSwipeDx = useRef(0)
+
+  // Double tap
+  const lastTapTime = useRef(0)
 
   const imgZoomRef = useRef(imgZoom)
   const imgOffsetRef = useRef(imgOffset)
@@ -70,28 +83,23 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
 
   // Init from URL (runs once after hydration)
   useEffect(() => {
-    const photoId = new URLSearchParams(window.location.search).get('photo')
-    if (photoId) {
-      const idx = photos.findIndex(p => p.publicId === photoId)
+    const match = window.location.pathname.match(/^\/photos\/(.+)$/)
+    if (match) {
+      const idx = photos.findIndex(p => p.publicId === match[1])
       if (idx !== -1) setSelectedIndex(idx)
     }
     urlInitialized.current = true
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Sync URL with selected photo
+  // Sync URL — router.replace безопасен т.к. PhotoGrid живёт в layout и не размонтируется
   useEffect(() => {
     if (!urlInitialized.current) return
-    const url = new URL(window.location.href)
-    if (selectedIndex !== null) {
-      url.searchParams.set('photo', photos[selectedIndex].publicId)
-    } else {
-      url.searchParams.delete('photo')
-    }
-    window.history.replaceState(null, '', url.toString())
-  }, [selectedIndex, photos])
+    const path = selectedIndex !== null ? `/photos/${photos[selectedIndex].publicId}` : '/photos'
+    router.replace(path, { scroll: false })
+  }, [selectedIndex, photos, router])
 
-  // Preload adjacent
+  // Preload adjacent (preview + full)
   useEffect(() => {
     if (selectedIndex === null) return
     const neighbours = [
@@ -99,10 +107,11 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
       (selectedIndex - 1 + photos.length) % photos.length,
     ]
     neighbours.forEach((i) => {
-      const src = cloudinaryFull(photos[i].publicId)
-      if (!preloaded.current.has(src)) {
-        preloaded.current.add(src)
-        preloadImg(src)
+      for (const src of [cloudinaryPreview(photos[i].publicId), cloudinaryFull(photos[i].publicId)]) {
+        if (!preloaded.current.has(src)) {
+          preloaded.current.add(src)
+          preloadImg(src)
+        }
       }
     })
   }, [selectedIndex, photos])
@@ -129,6 +138,12 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [close, prev, next])
+
+  // Block pull-to-refresh on photos page
+  useEffect(() => {
+    document.body.style.overscrollBehavior = 'none'
+    return () => { document.body.style.overscrollBehavior = '' }
+  }, [])
 
   // Lock body scroll (iOS-safe: overflow:hidden alone doesn't stop momentum scroll)
   useEffect(() => {
@@ -208,18 +223,26 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   }
   const onMouseUp = () => { isDragging.current = false }
 
-  // --- Touch pinch + pan + swipe-to-close ---
+  // --- Touch pinch + pan + swipe-to-close + swipe-to-navigate ---
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       isPinching.current = true
       isSwipingToClose.current = false
+      isSwipingNav.current = false
       pinchStartDist.current = getTouchDist(e.touches)
       pinchStartZoom.current = imgZoomRef.current
+      pinchMidStart.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      }
+      pinchOffsetStart.current = { x: imgOffsetRef.current.x, y: imgOffsetRef.current.y }
       touchPanStart.current = null
     } else if (e.touches.length === 1) {
       swipeStartX.current = e.touches[0].clientX
       swipeStartY.current = e.touches[0].clientY
       isSwipingToClose.current = false
+      isSwipingNav.current = false
+      navSwipeDx.current = 0
       if (imgZoomRef.current > 1) {
         touchPanStart.current = {
           x: e.touches[0].clientX,
@@ -239,8 +262,26 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
       const dist = getTouchDist(e.touches)
       const scale = dist / pinchStartDist.current
       const newZoom = Math.min(Math.max(pinchStartZoom.current * scale, 1), 8)
-      setImgZoom(newZoom)
-      if (newZoom <= 1) setImgOffset({ x: 0, y: 0 })
+      if (newZoom <= 1) {
+        setImgZoom(1)
+        setImgOffset({ x: 0, y: 0 })
+      } else {
+        const rect = lightboxRef.current?.getBoundingClientRect()
+        const cx = rect ? rect.left + rect.width / 2 : 0
+        const cy = rect ? rect.top + rect.height / 2 : 0
+        const mx = pinchMidStart.current.x - cx
+        const my = pinchMidStart.current.y - cy
+        const z1 = pinchStartZoom.current || 1
+        const currentMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2
+        const currentMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2
+        const panDx = currentMidX - pinchMidStart.current.x
+        const panDy = currentMidY - pinchMidStart.current.y
+        setImgZoom(newZoom)
+        setImgOffset({
+          x: mx * (1 - newZoom / z1) + pinchOffsetStart.current.x * newZoom / z1 + panDx,
+          y: my * (1 - newZoom / z1) + pinchOffsetStart.current.y * newZoom / z1 + panDy,
+        })
+      }
     } else if (e.touches.length === 1) {
       if (touchPanStart.current) {
         isTouchPanning.current = true
@@ -251,10 +292,16 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
       } else if (imgZoomRef.current <= 1) {
         const dx = e.touches[0].clientX - swipeStartX.current
         const dy = e.touches[0].clientY - swipeStartY.current
-        if (!isSwipingToClose.current && Math.abs(dy) > 8) {
+        if (!isSwipingToClose.current && !isSwipingNav.current && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+          isSwipingNav.current = true
+        }
+        if (!isSwipingToClose.current && !isSwipingNav.current && Math.abs(dy) > 8) {
           isSwipingToClose.current = dy > 0 && Math.abs(dy) > Math.abs(dx)
         }
-        if (isSwipingToClose.current) {
+        if (isSwipingNav.current) {
+          hasDragged.current = true
+          navSwipeDx.current = dx
+        } else if (isSwipingToClose.current) {
           hasDragged.current = true
           setSwipeOffset(Math.max(0, dy))
         }
@@ -267,13 +314,26 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     if (e.touches.length === 0) {
       touchPanStart.current = null
       isTouchPanning.current = false
-      if (isSwipingToClose.current) {
+      if (isSwipingNav.current) {
+        isSwipingNav.current = false
+        if (Math.abs(navSwipeDx.current) > 60) {
+          if (navSwipeDx.current < 0) next(); else prev()
+        }
+      } else if (isSwipingToClose.current) {
         isSwipingToClose.current = false
         if (swipeOffset > 120) {
           setSwipeOffset(window.innerHeight)
           setTimeout(() => close(), 420)
         } else {
           setSwipeOffset(0)
+        }
+      } else if (!hasDragged.current) {
+        const now = Date.now()
+        if (now - lastTapTime.current < 300) {
+          lastTapTime.current = 0
+          if (imgZoomRef.current > 1) resetZoom(); else setImgZoom(2.5)
+        } else {
+          lastTapTime.current = now
         }
       }
     }
@@ -297,7 +357,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
         ))}
       </div>
 
-      {selected && (
+      {selected && createPortal(
         <div
           ref={lightboxRef}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center"
@@ -317,11 +377,29 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
           onTouchEnd={onTouchEnd}
         >
           <button
-            className="absolute top-4 right-6 text-white text-4xl leading-none bg-transparent border-none cursor-pointer z-10"
-            style={{ opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
+            className="absolute right-6 text-white text-4xl leading-none bg-transparent border-none cursor-pointer z-10"
+            style={{ top: 'calc(1rem + env(safe-area-inset-top))', opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
             onClick={(e) => { e.stopPropagation(); close() }}
           >
             ×
+          </button>
+
+          <button
+            className="absolute left-6 text-white bg-transparent border-none cursor-pointer z-10 flex items-center gap-1.5 text-xs font-open-sans"
+            style={{ top: 'calc(1.1rem + env(safe-area-inset-top))', opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
+            onClick={(e) => {
+              e.stopPropagation()
+              navigator.clipboard.writeText(window.location.href).then(() => {
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              })
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            <span className="transition-opacity duration-200">{copied ? 'Скопировано' : 'Ссылка'}</span>
           </button>
 
           <button
@@ -380,8 +458,8 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
           </div>
 
           <div
-            className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-5 gap-1 z-10"
-            style={{ opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
+            className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-1 z-10"
+            style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))', opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {hasMeta(selected.meta) && (
@@ -405,7 +483,8 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
               {selectedIndex! + 1} / {photos.length}
             </span>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

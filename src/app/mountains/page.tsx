@@ -2,10 +2,13 @@ import type { Metadata } from 'next'
 import { PageLayout } from '@/components/shared/PageLayout'
 import { ElevationChart } from '@/components/features/mountains/ElevationChart'
 import { MountainMapClient } from '@/components/features/mountains/MountainMapClient'
+import { FadeIn } from '@/components/shared/FadeIn'
 import { peaks } from '@/data/mountains'
 
 export const metadata: Metadata = {
   title: 'Vladislav Vikul | Горы',
+  description: 'Горные вершины и маршруты',
+  openGraph: { title: 'Vladislav Vikul | Горы', description: 'Горные вершины и маршруты' },
 }
 
 export default function MountainsPage() {
@@ -17,6 +20,7 @@ export default function MountainsPage() {
       <div className="flex flex-col gap-6">
 
         {/* Stats */}
+        <FadeIn>
         <div className="bg-white rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-10">
           <div>
             <p className="text-xs font-open-sans font-bold tracking-[0.2em] uppercase text-gray-400 mb-1">
@@ -37,11 +41,13 @@ export default function MountainsPage() {
             <p className="font-eurostile text-4xl">{peaks.length}</p>
           </div>
         </div>
+        </FadeIn>
 
         {/* Elevation chart */}
-        <ElevationChart />
+        <FadeIn delay={100}><ElevationChart /></FadeIn>
 
         {/* Peak list */}
+        <FadeIn delay={200}>
         <div className="bg-white rounded-2xl overflow-hidden">
           {peaks
             .slice()
@@ -68,9 +74,10 @@ export default function MountainsPage() {
               </div>
             ))}
         </div>
+        </FadeIn>
 
         {/* Map */}
-        <MountainMapClient />
+        <FadeIn delay={300}><MountainMapClient /></FadeIn>
 
       </div>
     </PageLayout>

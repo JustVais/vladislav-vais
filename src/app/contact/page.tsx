@@ -3,6 +3,8 @@ import { PageLayout } from '@/components/shared/PageLayout'
 
 export const metadata: Metadata = {
   title: 'Vladislav Vikul | Contact',
+  description: 'Контакты',
+  openGraph: { title: 'Vladislav Vikul | Contact', description: 'Контакты' },
 }
 
 const contacts = [

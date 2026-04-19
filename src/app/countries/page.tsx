@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
 import { PageLayout } from '@/components/shared/PageLayout'
 import { WorldMapClient } from '@/components/features/countries/WorldMapClient'
+import { FadeIn } from '@/components/shared/FadeIn'
 import { visited } from '@/data/countries'
 
 export const metadata: Metadata = {
   title: 'Vladislav Vikul | Страны',
+  description: 'Города и страны, в которых я побывал',
+  openGraph: { title: 'Vladislav Vikul | Страны', description: 'Города и страны, в которых я побывал' },
 }
 
 export default function CountriesPage() {
@@ -15,6 +18,7 @@ export default function CountriesPage() {
       <div className="flex flex-col gap-6">
 
         {/* Статистика */}
+        <FadeIn>
         <div className="bg-white rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-10">
           <div>
             <p className="text-xs font-open-sans font-bold tracking-[0.2em] uppercase text-gray-400 mb-1">
@@ -29,8 +33,10 @@ export default function CountriesPage() {
             <p className="font-eurostile text-4xl">{totalCities}</p>
           </div>
         </div>
+        </FadeIn>
 
         {/* Список стран */}
+        <FadeIn delay={100}>
         <div className="bg-white rounded-2xl overflow-hidden">
           {visited.map((country, i) => (
             <div
@@ -59,9 +65,10 @@ export default function CountriesPage() {
             </div>
           ))}
         </div>
+        </FadeIn>
 
         {/* Карта */}
-        <WorldMapClient />
+        <FadeIn delay={200}><WorldMapClient /></FadeIn>
 
       </div>
     </PageLayout>

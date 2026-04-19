@@ -1,16 +1,11 @@
 import type { Metadata } from 'next'
-import { PageLayout } from '@/components/shared/PageLayout'
-import { PhotoGrid } from '@/components/features/photos/PhotoGrid'
-import { photos } from '@/data/photos'
 
 export const metadata: Metadata = {
   title: 'Vladislav Vikul | Photos',
+  description: 'Фотографии',
+  openGraph: { title: 'Vladislav Vikul | Photos', description: 'Фотографии' },
 }
 
 export default function PhotosPage() {
-  return (
-    <PageLayout>
-      <PhotoGrid photos={photos} />
-    </PageLayout>
-  )
+  return null
 }
