@@ -22,6 +22,7 @@ function getTouchDist(touches: React.TouchList) {
 
 export function PhotoGrid({ photos }: PhotoGridProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const urlInitialized = useRef(false)
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgZoom, setImgZoom] = useState(1)
   const [imgOffset, setImgOffset] = useState({ x: 0, y: 0 })
@@ -66,6 +67,29 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
       preloadImg(src)
     }
   }, [])
+
+  // Init from URL (runs once after hydration)
+  useEffect(() => {
+    const photoId = new URLSearchParams(window.location.search).get('photo')
+    if (photoId) {
+      const idx = photos.findIndex(p => p.publicId === photoId)
+      if (idx !== -1) setSelectedIndex(idx)
+    }
+    urlInitialized.current = true
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Sync URL with selected photo
+  useEffect(() => {
+    if (!urlInitialized.current) return
+    const url = new URL(window.location.href)
+    if (selectedIndex !== null) {
+      url.searchParams.set('photo', photos[selectedIndex].publicId)
+    } else {
+      url.searchParams.delete('photo')
+    }
+    window.history.replaceState(null, '', url.toString())
+  }, [selectedIndex, photos])
 
   // Preload adjacent
   useEffect(() => {
