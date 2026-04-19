@@ -112,11 +112,15 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     document.body.style.position = 'fixed'
     document.body.style.top = `-${y}px`
     document.body.style.width = '100%'
+    document.documentElement.style.backgroundColor = 'black'
     return () => {
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.width = ''
       window.scrollTo(0, y)
+      requestAnimationFrame(() => {
+        document.documentElement.style.backgroundColor = ''
+      })
     }
   }, [selected])
 
