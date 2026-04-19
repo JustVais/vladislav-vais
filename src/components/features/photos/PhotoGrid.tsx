@@ -116,17 +116,13 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     })
   }, [selectedIndex, photos])
 
-  // Reset on photo change
+  // Reset on photo change — всегда начинаем с preview, затем подгружается высокое качество
   useEffect(() => {
     resetZoom()
     setSwipeOffset(0)
     isSwipingToClose.current = false
-    if (selectedIndex === null) { setImgLoaded(false); return }
-    const src = cloudinaryFull(photos[selectedIndex].publicId)
-    const probe = new window.Image()
-    probe.src = src
-    setImgLoaded(probe.complete && probe.naturalWidth > 0)
-  }, [selectedIndex, resetZoom, photos])
+    setImgLoaded(false)
+  }, [selectedIndex, resetZoom])
 
   // Keyboard
   useEffect(() => {
@@ -352,7 +348,14 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
             meta={meta}
             onClick={() => setSelectedIndex(index)}
             onHover={() => handleHover(publicId)}
-            onLoad={() => preloadImg(cloudinaryPreview(publicId))}
+            onLoad={() => {
+              // Грузим preview текущего + соседних фото для мгновенного открытия
+              const indices = [index, index - 1, index + 1].filter(i => i >= 0 && i < photos.length)
+              indices.forEach(i => {
+                const src = cloudinaryPreview(photos[i].publicId)
+                if (!preloaded.current.has(src)) { preloaded.current.add(src); preloadImg(src) }
+              })
+            }}
           />
         ))}
       </div>
