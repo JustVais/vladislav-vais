@@ -39,6 +39,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   const pinchStartZoom = useRef(1)
   const touchPanStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
   const isPinching = useRef(false)
+  const isTouchPanning = useRef(false)
 
   // Swipe-to-close
   const [swipeOffset, setSwipeOffset] = useState(0)
@@ -218,6 +219,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
       if (newZoom <= 1) setImgOffset({ x: 0, y: 0 })
     } else if (e.touches.length === 1) {
       if (touchPanStart.current) {
+        isTouchPanning.current = true
         const dx = e.touches[0].clientX - touchPanStart.current.x
         const dy = e.touches[0].clientY - touchPanStart.current.y
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged.current = true
@@ -240,6 +242,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     if (e.touches.length < 2) { pinchStartDist.current = null; isPinching.current = false }
     if (e.touches.length === 0) {
       touchPanStart.current = null
+      isTouchPanning.current = false
       if (isSwipingToClose.current) {
         isSwipingToClose.current = false
         if (swipeOffset > 120) {
@@ -325,7 +328,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
                 position: 'relative',
                 transform: `translate(${imgOffset.x}px, ${imgOffset.y}px) scale(${imgZoom})`,
                 transformOrigin: 'center',
-                transition: (isDragging.current || isPinching.current) ? 'none' : 'transform 0.18s ease-out',
+                transition: (isDragging.current || isPinching.current || isTouchPanning.current) ? 'none' : 'transform 0.18s ease-out',
                 willChange: 'transform',
               }}
             >
