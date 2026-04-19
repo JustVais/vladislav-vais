@@ -11,7 +11,8 @@ export function cloudinaryPreview(publicId: string) {
   return `${BASE}/w_900,q_20,f_auto/${publicId}`
 }
 
-// Полный экран — высокое качество
+// Полный экран — высокое качество, c_limit не обрезает, просто ограничивает максимум
+// 3000px покрывает MacBook Retina (2880px) и iPhone с DPR 3 (~1060px физических)
 export function cloudinaryFull(publicId: string) {
-  return `${BASE}/q_90,f_auto/${publicId}`
+  return `${BASE}/c_limit,w_3000,q_90,f_auto/${publicId}`
 }
