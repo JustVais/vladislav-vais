@@ -10,9 +10,10 @@ interface PhotoCardProps {
   meta?: PhotoMeta
   onClick: () => void
   onHover?: () => void
+  onLoad?: () => void
 }
 
-export function PhotoCard({ src, alt, meta, onClick, onHover }: PhotoCardProps) {
+export function PhotoCard({ src, alt, meta, onClick, onHover, onLoad }: PhotoCardProps) {
   const [loaded, setLoaded] = useState(false)
   const hasMeta = meta && (meta.description || meta.date || meta.place)
 
@@ -33,7 +34,7 @@ export function PhotoCard({ src, alt, meta, onClick, onHover }: PhotoCardProps) 
         className={`object-cover transition-all duration-300 group-hover:scale-105 ${
           loaded ? 'opacity-100' : 'opacity-0'
         }`}
-        onLoad={() => setLoaded(true)}
+        onLoad={() => { setLoaded(true); onLoad?.() }}
       />
 
       {hasMeta && (

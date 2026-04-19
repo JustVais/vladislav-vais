@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { PhotoCard } from './PhotoCard'
-import { cloudinaryGrid, cloudinaryFull } from '@/lib/cloudinary'
+import { cloudinaryGrid, cloudinaryPreview, cloudinaryFull } from '@/lib/cloudinary'
 import type { PhotoEntry, PhotoMeta } from '@/data/photos'
 
 interface PhotoGridProps {
@@ -14,6 +14,12 @@ function preloadImg(src: string) {
   img.src = src
 }
 
+function getTouchDist(touches: React.TouchList) {
+  const dx = touches[0].clientX - touches[1].clientX
+  const dy = touches[0].clientY - touches[1].clientY
+  return Math.hypot(dx, dy)
+}
+
 export function PhotoGrid({ photos }: PhotoGridProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [imgLoaded, setImgLoaded] = useState(false)
@@ -22,9 +28,21 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
 
   const preloaded = useRef(new Set<string>())
   const lightboxRef = useRef<HTMLDivElement>(null)
+
+  // Mouse drag
   const isDragging = useRef(false)
   const hasDragged = useRef(false)
   const dragStart = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
+
+  // Touch pinch/pan
+  const pinchStartDist = useRef<number | null>(null)
+  const pinchStartZoom = useRef(1)
+  const touchPanStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
+
+  const imgZoomRef = useRef(imgZoom)
+  const imgOffsetRef = useRef(imgOffset)
+  imgZoomRef.current = imgZoom
+  imgOffsetRef.current = imgOffset
 
   const selected = selectedIndex !== null ? photos[selectedIndex] : null
 
@@ -41,7 +59,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     }
   }, [])
 
-  // Preload adjacent full-size images
+  // Preload adjacent
   useEffect(() => {
     if (selectedIndex === null) return
     const neighbours = [
@@ -59,11 +77,15 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
 
   // Reset on photo change
   useEffect(() => {
-    setImgLoaded(false)
     resetZoom()
-  }, [selectedIndex, resetZoom])
+    if (selectedIndex === null) { setImgLoaded(false); return }
+    const src = cloudinaryFull(photos[selectedIndex].publicId)
+    const probe = new window.Image()
+    probe.src = src
+    setImgLoaded(probe.complete && probe.naturalWidth > 0)
+  }, [selectedIndex, resetZoom, photos])
 
-  // Keyboard navigation
+  // Keyboard
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close()
@@ -74,18 +96,33 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [close, prev, next])
 
-  // Lock body scroll
+  // Lock body scroll (iOS-safe: overflow:hidden alone doesn't stop momentum scroll)
   useEffect(() => {
-    document.body.style.overflow = selected ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (!selected) return
+    const y = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${y}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, y)
+    }
   }, [selected])
 
-  // Non-passive wheel → zoom only the photo
+  // Блокируем нативный zoom iOS и scroll когда лайтбокс открыт
   useEffect(() => {
     if (!selected) return
     const el = lightboxRef.current
     if (!el) return
-    const handler = (e: WheelEvent) => {
+
+    const preventDefault = (e: TouchEvent) => {
+      if (e.touches.length >= 2 || imgZoomRef.current > 1) e.preventDefault()
+    }
+
+    // Non-passive wheel для десктопа
+    const onWheel = (e: WheelEvent) => {
       e.preventDefault()
       setImgZoom((z) => {
         const factor = e.deltaY < 0 ? 1.04 : 1 / 1.04
@@ -94,11 +131,29 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
         return Math.min(next, 8)
       })
     }
-    el.addEventListener('wheel', handler, { passive: false })
-    return () => el.removeEventListener('wheel', handler)
+
+    el.addEventListener('touchmove', preventDefault, { passive: false })
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => {
+      el.removeEventListener('touchmove', preventDefault)
+      el.removeEventListener('wheel', onWheel)
+    }
   }, [selected])
 
-  // Drag to pan
+  // Блокируем viewport zoom через мета-тег когда лайтбокс открыт
+  useEffect(() => {
+    const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]')
+    if (!viewport) return
+    const original = viewport.getAttribute('content') ?? ''
+    if (selected) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
+    } else {
+      viewport.setAttribute('content', original)
+    }
+    return () => viewport.setAttribute('content', original)
+  }, [selected])
+
+  // --- Mouse drag ---
   const onMouseDown = (e: React.MouseEvent) => {
     if (imgZoom <= 1) return
     isDragging.current = true
@@ -115,6 +170,47 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   }
   const onMouseUp = () => { isDragging.current = false }
 
+  // --- Touch pinch + pan ---
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      pinchStartDist.current = getTouchDist(e.touches)
+      pinchStartZoom.current = imgZoomRef.current
+      touchPanStart.current = null
+    } else if (e.touches.length === 1) {
+      if (imgZoomRef.current > 1) {
+        touchPanStart.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+          ox: imgOffsetRef.current.x,
+          oy: imgOffsetRef.current.y,
+        }
+      } else {
+        touchPanStart.current = null
+      }
+      hasDragged.current = false
+    }
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchStartDist.current !== null) {
+      const dist = getTouchDist(e.touches)
+      const scale = dist / pinchStartDist.current
+      const newZoom = Math.min(Math.max(pinchStartZoom.current * scale, 1), 8)
+      setImgZoom(newZoom)
+      if (newZoom <= 1) setImgOffset({ x: 0, y: 0 })
+    } else if (e.touches.length === 1 && touchPanStart.current) {
+      const dx = e.touches[0].clientX - touchPanStart.current.x
+      const dy = e.touches[0].clientY - touchPanStart.current.y
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged.current = true
+      setImgOffset({ x: touchPanStart.current.ox + dx, y: touchPanStart.current.oy + dy })
+    }
+  }
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) pinchStartDist.current = null
+    if (e.touches.length === 0) touchPanStart.current = null
+  }
+
   const hasMeta = (meta: PhotoMeta) => meta.description || meta.date || meta.place
 
   return (
@@ -128,6 +224,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
             meta={meta}
             onClick={() => setSelectedIndex(index)}
             onHover={() => handleHover(publicId)}
+            onLoad={() => preloadImg(cloudinaryPreview(publicId))}
           />
         ))}
       </div>
@@ -136,12 +233,18 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
         <div
           ref={lightboxRef}
           className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center"
-          style={{ cursor: imgZoom > 1 ? (isDragging.current ? 'grabbing' : 'grab') : 'default' }}
+          style={{
+            cursor: imgZoom > 1 ? (isDragging.current ? 'grabbing' : 'grab') : 'default',
+            touchAction: 'none',
+          }}
           onClick={() => { if (!hasDragged.current) close() }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onMouseLeave={onMouseUp}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           <button
             className="absolute top-4 right-6 text-white text-4xl leading-none bg-transparent border-none cursor-pointer z-10"
@@ -165,25 +268,34 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
           </button>
 
           <div className="relative flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              key={selected.publicId}
-              src={cloudinaryFull(selected.publicId)}
-              alt=""
-              className={`max-h-[80vh] max-w-[90vw] object-contain transition-opacity duration-500 select-none ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+            <div
               style={{
+                position: 'relative',
                 transform: `translate(${imgOffset.x}px, ${imgOffset.y}px) scale(${imgZoom})`,
                 transformOrigin: 'center',
-                transition: isDragging.current ? 'opacity 0.5s' : 'opacity 0.5s, transform 0.18s ease-out',
+                transition: isDragging.current ? 'none' : 'transform 0.18s ease-out',
               }}
-              draggable={false}
-              onLoad={() => setImgLoaded(true)}
-            />
-            {!imgLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-              </div>
-            )}
+            >
+              {/* Preview placeholder — нативное соотношение, из кэша */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={`preview-${selected.publicId}`}
+                src={cloudinaryPreview(selected.publicId)}
+                alt=""
+                className="absolute inset-0 w-full h-full object-contain select-none"
+                draggable={false}
+              />
+              {/* High quality — fades in on top when ready */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={selected.publicId}
+                src={cloudinaryFull(selected.publicId)}
+                alt=""
+                className={`relative max-h-[80vh] max-w-[90vw] object-contain select-none block transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                draggable={false}
+                onLoad={() => setImgLoaded(true)}
+              />
+            </div>
           </div>
 
           <div
