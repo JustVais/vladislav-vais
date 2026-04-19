@@ -40,6 +40,12 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   const touchPanStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
   const isPinching = useRef(false)
 
+  // Swipe-to-close
+  const [swipeOffset, setSwipeOffset] = useState(0)
+  const swipeStartX = useRef(0)
+  const swipeStartY = useRef(0)
+  const isSwipingToClose = useRef(false)
+
   const imgZoomRef = useRef(imgZoom)
   const imgOffsetRef = useRef(imgOffset)
   imgZoomRef.current = imgZoom
@@ -79,6 +85,8 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   // Reset on photo change
   useEffect(() => {
     resetZoom()
+    setSwipeOffset(0)
+    isSwipingToClose.current = false
     if (selectedIndex === null) { setImgLoaded(false); return }
     const src = cloudinaryFull(photos[selectedIndex].publicId)
     const probe = new window.Image()
@@ -171,14 +179,18 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   }
   const onMouseUp = () => { isDragging.current = false }
 
-  // --- Touch pinch + pan ---
+  // --- Touch pinch + pan + swipe-to-close ---
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       isPinching.current = true
+      isSwipingToClose.current = false
       pinchStartDist.current = getTouchDist(e.touches)
       pinchStartZoom.current = imgZoomRef.current
       touchPanStart.current = null
     } else if (e.touches.length === 1) {
+      swipeStartX.current = e.touches[0].clientX
+      swipeStartY.current = e.touches[0].clientY
+      isSwipingToClose.current = false
       if (imgZoomRef.current > 1) {
         touchPanStart.current = {
           x: e.touches[0].clientX,
@@ -200,17 +212,39 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
       const newZoom = Math.min(Math.max(pinchStartZoom.current * scale, 1), 8)
       setImgZoom(newZoom)
       if (newZoom <= 1) setImgOffset({ x: 0, y: 0 })
-    } else if (e.touches.length === 1 && touchPanStart.current) {
-      const dx = e.touches[0].clientX - touchPanStart.current.x
-      const dy = e.touches[0].clientY - touchPanStart.current.y
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged.current = true
-      setImgOffset({ x: touchPanStart.current.ox + dx, y: touchPanStart.current.oy + dy })
+    } else if (e.touches.length === 1) {
+      if (touchPanStart.current) {
+        const dx = e.touches[0].clientX - touchPanStart.current.x
+        const dy = e.touches[0].clientY - touchPanStart.current.y
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged.current = true
+        setImgOffset({ x: touchPanStart.current.ox + dx, y: touchPanStart.current.oy + dy })
+      } else if (imgZoomRef.current <= 1) {
+        const dx = e.touches[0].clientX - swipeStartX.current
+        const dy = e.touches[0].clientY - swipeStartY.current
+        if (!isSwipingToClose.current && Math.abs(dy) > 8) {
+          isSwipingToClose.current = dy > 0 && Math.abs(dy) > Math.abs(dx)
+        }
+        if (isSwipingToClose.current) {
+          hasDragged.current = true
+          setSwipeOffset(Math.max(0, dy))
+        }
+      }
     }
   }
 
   const onTouchEnd = (e: React.TouchEvent) => {
     if (e.touches.length < 2) { pinchStartDist.current = null; isPinching.current = false }
-    if (e.touches.length === 0) touchPanStart.current = null
+    if (e.touches.length === 0) {
+      touchPanStart.current = null
+      if (isSwipingToClose.current) {
+        if (swipeOffset > 120) {
+          close()
+        } else {
+          setSwipeOffset(0)
+        }
+        isSwipingToClose.current = false
+      }
+    }
   }
 
   const hasMeta = (meta: PhotoMeta) => meta.description || meta.date || meta.place
@@ -234,8 +268,9 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
       {selected && (
         <div
           ref={lightboxRef}
-          className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center"
           style={{
+            backgroundColor: `rgba(0,0,0,${Math.max(0.15, 1 - swipeOffset / 350)})`,
             cursor: imgZoom > 1 ? (isDragging.current ? 'grabbing' : 'grab') : 'default',
             touchAction: 'none',
           }}
@@ -272,6 +307,12 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
           <div className="relative flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
             <div
               style={{
+                transform: `translateY(${swipeOffset}px)`,
+                transition: isSwipingToClose.current ? 'none' : 'transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94)',
+              }}
+            >
+            <div
+              style={{
                 position: 'relative',
                 transform: `translate(${imgOffset.x}px, ${imgOffset.y}px) scale(${imgZoom})`,
                 transformOrigin: 'center',
@@ -298,6 +339,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
                 draggable={false}
                 onLoad={() => setImgLoaded(true)}
               />
+            </div>
             </div>
           </div>
 
