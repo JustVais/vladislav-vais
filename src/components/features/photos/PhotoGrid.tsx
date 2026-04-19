@@ -237,12 +237,13 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
     if (e.touches.length === 0) {
       touchPanStart.current = null
       if (isSwipingToClose.current) {
+        isSwipingToClose.current = false
         if (swipeOffset > 120) {
-          close()
+          setSwipeOffset(window.innerHeight)
+          setTimeout(() => close(), 420)
         } else {
           setSwipeOffset(0)
         }
-        isSwipingToClose.current = false
       }
     }
   }
@@ -270,7 +271,8 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
           ref={lightboxRef}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center"
           style={{
-            backgroundColor: `rgba(0,0,0,${Math.max(0.15, 1 - swipeOffset / 350)})`,
+            backgroundColor: `rgba(0,0,0,${Math.max(0, 1 - swipeOffset / 400)})`,
+            transition: isSwipingToClose.current ? 'none' : 'background-color 0.45s cubic-bezier(0.22,1,0.36,1)',
             cursor: imgZoom > 1 ? (isDragging.current ? 'grabbing' : 'grab') : 'default',
             touchAction: 'none',
           }}
@@ -308,7 +310,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
             <div
               style={{
                 transform: `translateY(${swipeOffset}px)`,
-                transition: isSwipingToClose.current ? 'none' : 'transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94)',
+                transition: isSwipingToClose.current ? 'none' : 'transform 0.45s cubic-bezier(0.22,1,0.36,1)',
               }}
             >
             <div
