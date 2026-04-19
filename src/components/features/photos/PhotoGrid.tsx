@@ -38,6 +38,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   const pinchStartDist = useRef<number | null>(null)
   const pinchStartZoom = useRef(1)
   const touchPanStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
+  const isPinching = useRef(false)
 
   const imgZoomRef = useRef(imgZoom)
   const imgOffsetRef = useRef(imgOffset)
@@ -173,6 +174,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   // --- Touch pinch + pan ---
   const onTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      isPinching.current = true
       pinchStartDist.current = getTouchDist(e.touches)
       pinchStartZoom.current = imgZoomRef.current
       touchPanStart.current = null
@@ -207,7 +209,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
   }
 
   const onTouchEnd = (e: React.TouchEvent) => {
-    if (e.touches.length < 2) pinchStartDist.current = null
+    if (e.touches.length < 2) { pinchStartDist.current = null; isPinching.current = false }
     if (e.touches.length === 0) touchPanStart.current = null
   }
 
@@ -273,7 +275,8 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
                 position: 'relative',
                 transform: `translate(${imgOffset.x}px, ${imgOffset.y}px) scale(${imgZoom})`,
                 transformOrigin: 'center',
-                transition: isDragging.current ? 'none' : 'transform 0.18s ease-out',
+                transition: (isDragging.current || isPinching.current) ? 'none' : 'transform 0.18s ease-out',
+                willChange: 'transform',
               }}
             >
               {/* Preview placeholder — нативное соотношение, из кэша */}
