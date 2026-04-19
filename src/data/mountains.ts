@@ -8,6 +8,7 @@ export interface Peak {
   type: PeakType
   date: string
   description: string
+  coordinates: [number, number] // [longitude, latitude]
 }
 
 export const peaks: Peak[] = [
@@ -19,6 +20,7 @@ export const peaks: Peak[] = [
     type: 'base_camp',
     date: '2025',
     description: 'Легендарный высокогорный приют на южном склоне Эльбруса',
+    coordinates: [42.43, 43.33],
   },
   {
     name: 'Иремель',
@@ -28,5 +30,6 @@ export const peaks: Peak[] = [
     type: 'summit',
     date: '2025',
     description: 'Вторая по высоте вершина Южного Урала',
+    coordinates: [58.85, 54.52],
   },
 ]

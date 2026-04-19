@@ -9,9 +9,10 @@ interface PhotoCardProps {
   alt: string
   meta?: PhotoMeta
   onClick: () => void
+  onHover?: () => void
 }
 
-export function PhotoCard({ src, alt, meta, onClick }: PhotoCardProps) {
+export function PhotoCard({ src, alt, meta, onClick, onHover }: PhotoCardProps) {
   const [loaded, setLoaded] = useState(false)
   const hasMeta = meta && (meta.description || meta.date || meta.place)
 
@@ -19,6 +20,7 @@ export function PhotoCard({ src, alt, meta, onClick }: PhotoCardProps) {
     <div
       className="relative aspect-square overflow-hidden cursor-pointer group"
       onClick={onClick}
+      onMouseEnter={onHover}
     >
       {!loaded && <div className="absolute inset-0 shimmer" />}
 
@@ -26,6 +28,7 @@ export function PhotoCard({ src, alt, meta, onClick }: PhotoCardProps) {
         src={src}
         alt={alt}
         fill
+        unoptimized
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
         className={`object-cover transition-all duration-300 group-hover:scale-105 ${
           loaded ? 'opacity-100' : 'opacity-0'
@@ -34,7 +37,7 @@ export function PhotoCard({ src, alt, meta, onClick }: PhotoCardProps) {
       />
 
       {hasMeta && (
-        <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0
+        <div className="hidden sm:block absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0
                         transition-transform duration-300 ease-out
                         bg-gradient-to-t from-black/80 via-black/50 to-transparent
                         px-4 pt-8 pb-4">

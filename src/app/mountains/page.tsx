@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { PageLayout } from '@/components/shared/PageLayout'
 import { ElevationChart } from '@/components/features/mountains/ElevationChart'
+import { MountainMapClient } from '@/components/features/mountains/MountainMapClient'
 import { peaks } from '@/data/mountains'
 
 export const metadata: Metadata = {
@@ -67,6 +68,9 @@ export default function MountainsPage() {
               </div>
             ))}
         </div>
+
+        {/* Map */}
+        <MountainMapClient />
 
       </div>
     </PageLayout>
