@@ -291,6 +291,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
         >
           <button
             className="absolute top-4 right-6 text-white text-4xl leading-none bg-transparent border-none cursor-pointer z-10"
+            style={{ opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
             onClick={(e) => { e.stopPropagation(); close() }}
           >
             ×
@@ -298,6 +299,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
 
           <button
             className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-4xl bg-transparent border-none cursor-pointer leading-none px-2 py-4 z-10"
+            style={{ opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
             onClick={(e) => { e.stopPropagation(); prev() }}
           >
             ‹
@@ -305,6 +307,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
 
           <button
             className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 text-white/60 hover:text-white text-4xl bg-transparent border-none cursor-pointer leading-none px-2 py-4 z-10"
+            style={{ opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
             onClick={(e) => { e.stopPropagation(); next() }}
           >
             ›
@@ -351,6 +354,7 @@ export function PhotoGrid({ photos }: PhotoGridProps) {
 
           <div
             className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-5 gap-1 z-10"
+            style={{ opacity: Math.max(0, 1 - swipeOffset / 150), transition: isSwipingToClose.current ? 'none' : 'opacity 0.45s cubic-bezier(0.22,1,0.36,1)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {hasMeta(selected.meta) && (
