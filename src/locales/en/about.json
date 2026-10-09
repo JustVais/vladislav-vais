@@ -5,5 +5,120 @@
   "use": "Use",
   "familiar": "Familiar",
   "experience": "Work experience",
-  "another": "Another"
+  "another": "Another",
+  "jobs": [
+    {
+      "company": "Brusnika",
+      "period": "April 2023 — present",
+      "role": "Senior Full-stack Developer",
+      "description": "Developing digital tools for the company’s land bank, including a land management information system.",
+      "achievements": [
+        "Developed site and construction modelling based on specified parameters and master plans, and a dashboard for analysing land reserves by project.",
+        "Built a temporary housing management system and a flexible role-based access model with an administration interface.",
+        "Implemented event-driven calculation of ownership shares in land plots, buildings and premises, with bitemporal data storage for cost allocation.",
+        "Built an engineering and business knowledge portal with MCP access.",
+        "Improved DXF processing, support for local coordinate systems and intersection calculations between land plots and construction objects.",
+        "Optimised services to reduce p95 response times. Configured application deployment and operations in Kubernetes, including configuration, secrets, resources, networking and diagnostics.",
+        "Conducted technical interviews, onboarded developers and served as acting team lead."
+      ],
+      "stack": [
+        "Java",
+        "Spring Boot",
+        "JPA / Hibernate",
+        "PostgreSQL",
+        "PostGIS",
+        "React",
+        "TypeScript",
+        "Kafka",
+        "Redis",
+        "JUnit",
+        "Mockito",
+        "Docker",
+        "Kubernetes",
+        "GitLab CI",
+        "Vault",
+        "Jaeger"
+      ]
+    },
+    {
+      "company": "Admitad Projects",
+      "period": "July 2022 — March 2023",
+      "role": "Frontend Developer",
+      "description": "Worked on a startup within admitad GmbH: an embeddable furniture selection widget for partner websites in the US rental housing market.",
+      "achievements": [
+        "Developed a step-by-step furnishing flow, selected-item management and rental request submission.",
+        "Implemented rental cost estimates based on furniture types and quantities, rental duration and rates.",
+        "Built the host component for the widget.",
+        "Integrated Google Analytics and Yandex Metrica to track user journeys.",
+        "Developed an interface for configuring furniture company integrations with the rental service."
+      ],
+      "stack": [
+        "React",
+        "TypeScript",
+        "JavaScript",
+        "HTML",
+        "CSS",
+        "Rollup"
+      ]
+    },
+    {
+      "company": "RaketaCN",
+      "period": "January 2022 — June 2022",
+      "role": "Full-stack Developer",
+      "description": "Developed a service for shipping goods from China.",
+      "achievements": [
+        "Built staged order processing and consolidation of a customer’s parcels into a single shipment at the warehouse in China.",
+        "Implemented shipping estimates based on weight, dimensions, transport method and rates.",
+        "Integrated Mindbox for targeted promotions and online payments for account top-ups.",
+        "Developed order management, including adding items, editing shipping parameters and viewing change history."
+      ],
+      "stack": [
+        "TypeScript",
+        "React",
+        "Java",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "company": "NPPSpetstekh",
+      "period": "January 2021 — December 2021",
+      "role": "Full-stack Developer",
+      "description": "Built a web system for centralised intake and processing of service requests from corporate and advertising websites.",
+      "achievements": [
+        "Implemented a partner portal with access controls and detailed request information.",
+        "Built an administration panel for data flows, filters, priorities and processing limits.",
+        "Automated request distribution among partners based on region, source and content, taking priorities and limits into account.",
+        "Implemented real-time updates via Socket.IO, processing statistics and Excel report exports.",
+        "Integrated DaData to determine regions from phone numbers, and API-based data exchange with external systems with transfer status display."
+      ],
+      "stack": [
+        "TypeScript",
+        "React",
+        "Next.js",
+        "Redux",
+        "Node.js",
+        "Express",
+        "MySQL",
+        "Socket.IO"
+      ]
+    },
+    {
+      "company": "Project-based development",
+      "period": "September 2019 — December 2020",
+      "role": "Full-stack Developer",
+      "description": "Developed web services, online stores and administration panels.",
+      "achievements": [
+        "Created a Telegram and WhatsApp messaging service with Android device management through a web administration panel.",
+        "Migrated the canoe.ru clothing store from CSR to SSR.",
+        "Built the WE-AR administration panel for augmented reality markers.",
+        "Developed a Kazakhstan multisite platform with articles about loans and data from the central bank.",
+        "Built a Barcelona coffee shop website and an online DVPL converter for World of Tanks."
+      ],
+      "stack": [
+        "React",
+        "NestJS",
+        "Next.js"
+      ]
+    }
+  ]
 }

@@ -14,12 +14,14 @@ const STACK = [
 
 const FAMILIAR = ['React Native', 'Vue', 'MobX', 'RxJS', 'Java Spring', 'urql', 'HTML / CSS', 'PHP', 'C#', 'Python']
 
-const EXPERIENCE = [
-  { company: 'Брусника',   period: 'Apr 2023 — по настоящее время' },
-  { company: 'Admitad Projects', period: 'Jan 2022 — Mar 2023' },
-  { company: 'Cheap-lead', period: 'Aug 2021 — Dec 2021' },
-  { company: 'Freelance',  period: '2019 — 2021' },
-]
+interface Experience {
+  company: string
+  period: string
+  role: string
+  description: string
+  achievements: string[]
+  stack: string[]
+}
 
 function Tag({ label, filled = false }: { label: string; filled?: boolean }) {
   return (
@@ -52,6 +54,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 export default function AboutPage() {
   const { t } = useTranslation('about')
+  const experience = t('jobs', { returnObjects: true }) as Experience[]
 
   return (
     <PageLayout>
@@ -94,20 +97,30 @@ export default function AboutPage() {
 
         <Card>
           <SectionLabel>{t('experience')}</SectionLabel>
-          <div className="flex flex-col">
-            {EXPERIENCE.map((job, i) => (
-              <div key={job.company} className="flex gap-6">
-                <div className="flex flex-col items-center">
+          <ol className="flex flex-col list-none m-0 p-0">
+            {experience.map((job, i) => (
+              <li key={job.company} className="flex gap-4 sm:gap-6">
+                <div className="flex flex-col items-center" aria-hidden="true">
                   <div className="w-2 h-2 rounded-full bg-black mt-1.5 shrink-0" />
-                  {i < EXPERIENCE.length - 1 && <div className="w-px flex-1 bg-gray-200 my-1" />}
+                  {i < experience.length - 1 && <div className="w-px flex-1 bg-gray-200 my-1" />}
                 </div>
-                <div className="pb-6">
-                  <p className="font-open-sans font-bold text-base leading-none">{job.company}</p>
+                <div className={`min-w-0 flex-1 ${i < experience.length - 1 ? 'pb-8 sm:pb-10' : ''}`}>
+                  <h2 className="font-open-sans font-bold text-base leading-snug">{job.company}</h2>
                   <p className="text-sm text-gray-400 font-open-sans mt-1">{job.period}</p>
+                  <p className="font-open-sans font-bold text-sm mt-3">{job.role}</p>
+                  <p className="text-sm text-gray-500 font-open-sans leading-relaxed mt-2">{job.description}</p>
+                  <ul className="list-disc pl-4 mt-3 space-y-2 text-sm text-gray-500 font-open-sans leading-relaxed">
+                    {job.achievements.map((achievement) => (
+                      <li key={achievement}>{achievement}</li>
+                    ))}
+                  </ul>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {job.stack.map((item) => <Tag key={item} label={item} />)}
+                  </div>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </Card>
 
       </div>
