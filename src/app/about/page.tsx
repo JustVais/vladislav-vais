@@ -3,16 +3,18 @@
 import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/shared/PageLayout'
 
-const LANGUAGES = ['Java', 'JavaScript', 'TypeScript']
+const LANGUAGES = ['Java', 'TypeScript', 'JavaScript', 'SQL']
 
 const STACK = [
-  { category: 'Frontend', items: ['React', 'Next.js', 'Redux', 'Redux-Saga', 'Svelte', 'Webpack'] },
-  { category: 'Backend',  items: ['Java', 'NestJS'] },
-  { category: 'Storage',  items: ['PostgreSQL', 'MySQL', 'MongoDB'] },
-  { category: 'Tools',    items: ['Git', 'Docker', 'gRPC', 'Apollo GraphQL', 'WebSocket', 'Ubuntu / Debian'] },
+  { category: 'frontend', items: ['React', 'Next.js', 'Redux', 'Redux-Saga', 'Svelte', 'HTML / CSS', 'Webpack', 'Rollup'] },
+  { category: 'backend', items: ['Spring Framework', 'Spring Boot', 'JPA / Hibernate', 'Node.js', 'Express', 'NestJS'] },
+  { category: 'storage', items: ['PostgreSQL', 'PostGIS', 'MySQL', 'MongoDB', 'Redis'] },
+  { category: 'integrations', items: ['Apache Kafka', 'Socket.IO', 'WebSocket', 'gRPC', 'Apollo GraphQL'] },
+  { category: 'infrastructure', items: ['Git', 'Docker', 'Kubernetes', 'GitLab CI/CD', 'Vault', 'Jaeger', 'Ubuntu / Debian'] },
+  { category: 'testing', items: ['JUnit', 'Mockito'] },
 ]
 
-const FAMILIAR = ['React Native', 'Vue', 'MobX', 'RxJS', 'Java Spring', 'urql', 'HTML / CSS', 'PHP', 'C#', 'Python']
+const FAMILIAR = ['React Native', 'Vue', 'MobX', 'RxJS', 'urql', 'PHP', 'C#', 'Python']
 
 interface Experience {
   company: string
@@ -55,6 +57,10 @@ function Card({ children }: { children: React.ReactNode }) {
 export default function AboutPage() {
   const { t } = useTranslation('about')
   const experience = t('jobs', { returnObjects: true }) as Experience[]
+  const skills = [
+    ...STACK,
+    { category: 'architecture', items: [t('microservices')] },
+  ]
 
   return (
     <PageLayout>
@@ -77,10 +83,10 @@ export default function AboutPage() {
         <Card>
           <SectionLabel>{t('use')}</SectionLabel>
           <div className="flex flex-col gap-5">
-            {STACK.map(({ category, items }) => (
-              <div key={category} className="grid grid-cols-1 sm:grid-cols-[100px_1fr] items-start gap-2 sm:gap-4">
-                <span className="text-xs font-open-sans text-gray-400 pt-1.5">{category}</span>
-                <div className="flex flex-wrap gap-2">
+            {skills.map(({ category, items }) => (
+              <div key={category} className="grid grid-cols-1 sm:grid-cols-[140px_minmax(0,1fr)] items-start gap-2 sm:gap-4">
+                <span className="text-xs font-open-sans text-gray-400 pt-1.5">{t(`skill_categories.${category}`)}</span>
+                <div className="min-w-0 flex flex-wrap gap-2">
                   {items.map((item) => <Tag key={item} label={item} filled />)}
                 </div>
               </div>

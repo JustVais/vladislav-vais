@@ -1,8 +1,18 @@
 {
   "about_me": "Обо мне",
-  "prog_lang": "Языки программирования",
+  "prog_lang": "Языки программирования и запросов",
   "technologies": "Технологии",
-  "use": "Использую",
+  "use": "Навыки и технологии",
+  "skill_categories": {
+    "frontend": "Фронтенд",
+    "backend": "Бэкенд",
+    "storage": "Базы данных",
+    "integrations": "Интеграции",
+    "infrastructure": "Инфраструктура",
+    "testing": "Тестирование",
+    "architecture": "Архитектура"
+  },
+  "microservices": "Микросервисы",
   "familiar": "Знаком",
   "experience": "Опыт работы",
   "another": "Другие",

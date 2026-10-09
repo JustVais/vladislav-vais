@@ -1,8 +1,18 @@
 {
   "about_me": "About me",
-  "prog_lang": "Programming languages",
+  "prog_lang": "Programming and query languages",
   "technologies": "Technologies",
-  "use": "Use",
+  "use": "Skills and technologies",
+  "skill_categories": {
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "storage": "Databases",
+    "integrations": "Integrations",
+    "infrastructure": "Infrastructure",
+    "testing": "Testing",
+    "architecture": "Architecture"
+  },
+  "microservices": "Microservices",
   "familiar": "Familiar",
   "experience": "Work experience",
   "another": "Another",
